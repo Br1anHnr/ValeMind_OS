@@ -226,9 +226,11 @@ export function AppShell({
   const sidebarContent = (
     <div className="flex h-full flex-col bg-slate-950 text-slate-200">
       <div className="flex h-16 items-center gap-3 border-b border-slate-800/80 px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500 text-sm font-bold text-white shadow-sm">
-          VM
-        </div>
+        <img
+          src="/valemind-icon.png"
+          alt="ValeMind"
+          className="h-9 w-9 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-white/15"
+        />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold tracking-tight text-white">
             ValeMind OS

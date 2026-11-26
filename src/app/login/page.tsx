@@ -50,9 +50,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500 text-lg font-bold text-white shadow-lg shadow-indigo-500/25">
-            VM
-          </div>
+          <img
+            src="/valemind-icon.png"
+            alt="ValeMind"
+            className="mx-auto mb-4 h-14 w-14 rounded-2xl object-cover shadow-lg shadow-sky-500/20 ring-1 ring-white/15"
+          />
           <h1 className="text-2xl font-bold tracking-tight text-white">
             ValeMind OS
           </h1>
