@@ -1,6 +1,9 @@
 import { z } from "zod";
 import {
   clientStatusEnum,
+  contractDocStatusEnum,
+  contractIpModeEnum,
+  contractTemplateTypeEnum,
   credentialTypeEnum,
   financialEntryTypeEnum,
   financialStatusEnum,
@@ -89,6 +92,11 @@ export const clientInputSchema = z.object({
   phone: optionalString,
   website: optionalString,
   instagram: optionalString,
+  legalName: optionalString,
+  document: optionalString,
+  address: optionalString,
+  representativeName: optionalString,
+  representativeCpf: optionalString,
   ownerId: optionalUuid,
   status: z.enum(clientStatusEnum.enumValues).default("ativo"),
   importantLinks: z.array(importantLinkSchema).optional().default([]),
@@ -296,3 +304,39 @@ export const secretInputSchema = z.object({
 export const secretPatchSchema = secretInputSchema.partial().extend({
   secretValue: z.string().optional(),
 });
+
+export const companySettingsSchema = z.object({
+  legalName: z.string().trim().min(1, "Razão Social é obrigatória"),
+  tradeName: z.string().trim().min(1, "Nome Fantasia é obrigatório"),
+  cnpj: optionalString,
+  address: optionalString,
+  city: optionalString,
+  state: optionalString,
+  representativeName: optionalString,
+  representativeCpf: optionalString,
+  email: optionalString,
+  phone: optionalString,
+  pixKey: optionalString,
+});
+
+export const contractDocumentSchema = z.object({
+  title: z.string().trim().min(1, "Título do contrato é obrigatório"),
+  templateType: z
+    .enum(contractTemplateTypeEnum.enumValues)
+    .default("desenvolvimento_manutencao"),
+  clientId: z.string().uuid("Selecione um cliente válido"),
+  projectId: optionalUuid,
+  status: z.enum(contractDocStatusEnum.enumValues).default("rascunho"),
+  totalValue: z.union([z.string(), z.number()]).optional().nullable(),
+  setupValue: z.union([z.string(), z.number()]).optional().nullable(),
+  monthlyFee: z.union([z.string(), z.number()]).optional().nullable(),
+  dueDay: z.coerce.number().int().min(1).max(31).default(10),
+  paymentMethod: optionalString,
+  startDate: optionalString,
+  dueDate: optionalString,
+  ipMode: z.enum(contractIpModeEnum.enumValues).default("cessao_apos_quitacao"),
+  content: z.string().trim().min(20, "Conteúdo do contrato é obrigatório"),
+  signedUrl: optionalString,
+});
+
+export const contractDocumentPatchSchema = contractDocumentSchema.partial();

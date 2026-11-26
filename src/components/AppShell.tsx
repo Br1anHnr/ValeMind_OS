@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
   CheckSquare,
+  FileSignature,
   FileText,
   FolderKanban,
   KanbanSquare,
@@ -127,6 +128,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Gestão & Segurança",
     items: [
       { href: "/financeiro", label: "Financeiro", icon: Wallet },
+      { href: "/contratos", label: "Contratos", icon: FileSignature },
       { href: "/cofre", label: "Cofre", icon: Lock },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
@@ -302,7 +304,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 print:hidden lg:block">
         {sidebarContent}
       </aside>
 
@@ -328,8 +330,8 @@ export function AppShell({
       ) : null}
 
       {/* Main Column */}
-      <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
+      <div className="flex min-w-0 flex-1 flex-col print:pl-0 lg:pl-64">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/95 px-4 backdrop-blur print:hidden sm:px-6">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -611,7 +613,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 print:p-0 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

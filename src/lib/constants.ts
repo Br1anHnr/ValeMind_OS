@@ -1,5 +1,8 @@
 import type {
   ClientStatus,
+  ContractDocStatus,
+  ContractIpMode,
+  ContractTemplateType,
   CredentialType,
   FinancialEntryType,
   FinancialStatus,
@@ -395,3 +398,74 @@ export const CREDENTIAL_TYPES: {
 export const CREDENTIAL_TYPE_MAP = Object.fromEntries(
   CREDENTIAL_TYPES.map((t) => [t.value, t])
 ) as Record<CredentialType, (typeof CREDENTIAL_TYPES)[number]>;
+
+export const CONTRACT_DOC_STATUSES: {
+  value: ContractDocStatus;
+  label: string;
+  badgeClass: string;
+}[] = [
+  {
+    value: "rascunho",
+    label: "Rascunho",
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+  },
+  {
+    value: "enviado",
+    label: "Enviado p/ Assinatura",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  {
+    value: "assinado",
+    label: "Assinado",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  {
+    value: "cancelado",
+    label: "Cancelado",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+];
+
+export const CONTRACT_DOC_STATUS_MAP = Object.fromEntries(
+  CONTRACT_DOC_STATUSES.map((s) => [s.value, s])
+) as Record<ContractDocStatus, (typeof CONTRACT_DOC_STATUSES)[number]>;
+
+export const CONTRACT_TEMPLATE_TYPES: {
+  value: ContractTemplateType;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "desenvolvimento_manutencao",
+    label: "Desenvolvimento + Manutenção Mensal",
+    description: "Implantação/desenvolvimento do projeto + suporte contínuo mensal.",
+  },
+  {
+    value: "desenvolvimento",
+    label: "Desenvolvimento de Projeto Pontual",
+    description: "Entrega fechada de site, sistema, aplicativo ou automação.",
+  },
+  {
+    value: "manutencao",
+    label: "Suporte, Hospedagem e Manutenção Recorrente",
+    description: "Contrato de recorrência mensal para sistemas já em operação.",
+  },
+];
+
+export const CONTRACT_TEMPLATE_MAP = Object.fromEntries(
+  CONTRACT_TEMPLATE_TYPES.map((t) => [t.value, t])
+) as Record<ContractTemplateType, (typeof CONTRACT_TEMPLATE_TYPES)[number]>;
+
+export const CONTRACT_IP_MODES: {
+  value: ContractIpMode;
+  label: string;
+}[] = [
+  {
+    value: "cessao_apos_quitacao",
+    label: "Cessão de direitos ao cliente após quitação integral",
+  },
+  {
+    value: "licenca_mensal",
+    label: "Licença de uso vinculada à manutenção da mensalidade (SaaS)",
+  },
+];

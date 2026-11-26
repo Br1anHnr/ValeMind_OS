@@ -58,8 +58,27 @@ export const activityEntityEnum = pgEnum("activity_entity", [
   "financial",
   "meeting",
   "secret",
+  "contract",
   "user",
   "system",
+]);
+
+export const contractDocStatusEnum = pgEnum("contract_doc_status", [
+  "rascunho",
+  "enviado",
+  "assinado",
+  "cancelado",
+]);
+
+export const contractTemplateTypeEnum = pgEnum("contract_template_type", [
+  "desenvolvimento",
+  "manutencao",
+  "desenvolvimento_manutencao",
+]);
+
+export const contractIpModeEnum = pgEnum("contract_ip_mode", [
+  "cessao_apos_quitacao",
+  "licenca_mensal",
 ]);
 
 export const financialStatusEnum = pgEnum("financial_status", [
@@ -144,6 +163,11 @@ export const clients = pgTable(
     phone: text("phone"),
     website: text("website"),
     instagram: text("instagram"),
+    legalName: text("legal_name"),
+    document: text("document"),
+    address: text("address"),
+    representativeName: text("representative_name"),
+    representativeCpf: text("representative_cpf"),
     ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
     status: clientStatusEnum("status").notNull().default("ativo"),
     importantLinks: jsonb("important_links")
@@ -479,6 +503,64 @@ export const secrets = pgTable(
   ]
 );
 
+export const companySettings = pgTable("company_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  legalName: text("legal_name").notNull().default("ValeMind"),
+  tradeName: text("trade_name").notNull().default("ValeMind"),
+  cnpj: text("cnpj"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  representativeName: text("representative_name"),
+  representativeCpf: text("representative_cpf"),
+  email: text("email"),
+  phone: text("phone"),
+  pixKey: text("pix_key"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const contractDocuments = pgTable(
+  "contract_documents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    contractNumber: text("contract_number").notNull().unique(),
+    title: text("title").notNull(),
+    templateType: contractTemplateTypeEnum("template_type")
+      .notNull()
+      .default("desenvolvimento_manutencao"),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    status: contractDocStatusEnum("status").notNull().default("rascunho"),
+    totalValue: numeric("total_value", { precision: 12, scale: 2 }),
+    setupValue: numeric("setup_value", { precision: 12, scale: 2 }),
+    monthlyFee: numeric("monthly_fee", { precision: 12, scale: 2 }),
+    dueDay: integer("due_day").notNull().default(10),
+    paymentMethod: text("payment_method"),
+    startDate: date("start_date"),
+    dueDate: date("due_date"),
+    ipMode: contractIpModeEnum("ip_mode")
+      .notNull()
+      .default("cessao_apos_quitacao"),
+    content: text("content").notNull(),
+    signedUrl: text("signed_url"),
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    createdById: uuid("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("contract_documents_client_id_idx").on(table.clientId),
+    index("contract_documents_project_id_idx").on(table.projectId),
+    index("contract_documents_status_idx").on(table.status),
+  ]
+);
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
@@ -569,6 +651,8 @@ export type FinancialEntry = typeof financialEntries.$inferSelect;
 export type Meeting = typeof meetings.$inferSelect;
 export type WeeklyGoal = typeof weeklyGoals.$inferSelect;
 export type Secret = typeof secrets.$inferSelect;
+export type CompanySettings = typeof companySettings.$inferSelect;
+export type ContractDocument = typeof contractDocuments.$inferSelect;
 export type Activity = typeof activities.$inferSelect;
 export type LeadStage = (typeof leadStageEnum.enumValues)[number];
 export type ClientStatus = (typeof clientStatusEnum.enumValues)[number];
@@ -580,4 +664,7 @@ export type FinancialStatus = (typeof financialStatusEnum.enumValues)[number];
 export type FinancialEntryType = (typeof financialEntryTypeEnum.enumValues)[number];
 export type MeetingType = (typeof meetingTypeEnum.enumValues)[number];
 export type CredentialType = (typeof credentialTypeEnum.enumValues)[number];
+export type ContractDocStatus = (typeof contractDocStatusEnum.enumValues)[number];
+export type ContractTemplateType = (typeof contractTemplateTypeEnum.enumValues)[number];
+export type ContractIpMode = (typeof contractIpModeEnum.enumValues)[number];
 export type UserRole = (typeof userRoleEnum.enumValues)[number];

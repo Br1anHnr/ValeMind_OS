@@ -15,6 +15,11 @@ export interface ClientFormData {
   phone: string | null;
   website: string | null;
   instagram: string | null;
+  legalName?: string | null;
+  document?: string | null;
+  address?: string | null;
+  representativeName?: string | null;
+  representativeCpf?: string | null;
   ownerId: string | null;
   status: ClientStatus;
   importantLinks: ImportantLink[];
@@ -43,6 +48,11 @@ export function ClientFormModal({
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [legalName, setLegalName] = useState("");
+  const [document, setDocument] = useState("");
+  const [address, setAddress] = useState("");
+  const [representativeName, setRepresentativeName] = useState("");
+  const [representativeCpf, setRepresentativeCpf] = useState("");
   const [ownerId, setOwnerId] = useState("");
   const [status, setStatus] = useState<ClientStatus>("ativo");
   const [importantLinks, setImportantLinks] = useState<ImportantLink[]>([]);
@@ -60,6 +70,11 @@ export function ClientFormModal({
       setPhone(initialClient.phone ?? "");
       setWebsite(initialClient.website ?? "");
       setInstagram(initialClient.instagram ?? "");
+      setLegalName(initialClient.legalName ?? "");
+      setDocument(initialClient.document ?? "");
+      setAddress(initialClient.address ?? "");
+      setRepresentativeName(initialClient.representativeName ?? "");
+      setRepresentativeCpf(initialClient.representativeCpf ?? "");
       setOwnerId(initialClient.ownerId ?? "");
       setStatus(initialClient.status);
       setImportantLinks(initialClient.importantLinks ?? []);
@@ -71,6 +86,11 @@ export function ClientFormModal({
       setPhone("");
       setWebsite("");
       setInstagram("");
+      setLegalName("");
+      setDocument("");
+      setAddress("");
+      setRepresentativeName("");
+      setRepresentativeCpf("");
       setOwnerId(users[0]?.id ?? "");
       setStatus("ativo");
       setImportantLinks([]);
@@ -117,6 +137,11 @@ export function ClientFormModal({
           phone,
           website,
           instagram,
+          legalName,
+          document,
+          address,
+          representativeName,
+          representativeCpf,
           ownerId: ownerId || null,
           status,
           importantLinks: cleanedLinks,
@@ -253,6 +278,70 @@ export function ClientFormModal({
           </div>
         </div>
 
+        {/* Dados Fiscais / Contrato */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-600">
+            Dados Fiscais / Contrato (Opcional)
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                Razão Social / Nome completo
+              </label>
+              <input
+                value={legalName}
+                onChange={(e) => setLegalName(e.target.value)}
+                placeholder="Razão Social conforme CNPJ"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                CNPJ ou CPF
+              </label>
+              <input
+                value={document}
+                onChange={(e) => setDocument(e.target.value)}
+                placeholder="00.000.000/0001-00"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                Endereço completo
+              </label>
+              <input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Rua, nº, bairro, cidade/UF, CEP"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                Representante legal (quem assina)
+              </label>
+              <input
+                value={representativeName}
+                onChange={(e) => setRepresentativeName(e.target.value)}
+                placeholder="Nome completo"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">
+                CPF do representante
+              </label>
+              <input
+                value={representativeCpf}
+                onChange={(e) => setRepresentativeCpf(e.target.value)}
+                placeholder="000.000.000-00"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Links importantes */}
         <div>
           <div className="mb-1.5 flex items-center justify-between">
@@ -317,7 +406,7 @@ export function ClientFormModal({
           </div>
         ) : null}
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+        <div className="sticky bottom-0 -mx-6 -mb-5 flex items-center justify-end gap-2 border-t border-slate-100 bg-white px-6 py-3.5">
           <button
             type="button"
             onClick={onClose}

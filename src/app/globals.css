@@ -32,6 +32,18 @@ body {
   }
 }
 
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+}
+
 /* Scrollbar sutil para colunas do Kanban */
 ::-webkit-scrollbar {
   width: 7px;

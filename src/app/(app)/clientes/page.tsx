@@ -278,6 +278,13 @@ export default function ClientesPage() {
                                 phone: client.phone,
                                 website: client.website,
                                 instagram: client.instagram,
+                                legalName: client.legalName ?? null,
+                                document: client.document ?? null,
+                                address: client.address ?? null,
+                                representativeName:
+                                  client.representativeName ?? null,
+                                representativeCpf:
+                                  client.representativeCpf ?? null,
                                 ownerId: client.ownerId,
                                 status: client.status,
                                 importantLinks:

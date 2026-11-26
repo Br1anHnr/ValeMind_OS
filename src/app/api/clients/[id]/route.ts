@@ -40,6 +40,11 @@ export async function GET(
       phone: clients.phone,
       website: clients.website,
       instagram: clients.instagram,
+      legalName: clients.legalName,
+      document: clients.document,
+      address: clients.address,
+      representativeName: clients.representativeName,
+      representativeCpf: clients.representativeCpf,
       ownerId: clients.ownerId,
       ownerName: users.name,
       status: clients.status,
@@ -186,6 +191,15 @@ export async function PATCH(
         ...(d.phone !== undefined ? { phone: d.phone } : {}),
         ...(d.website !== undefined ? { website: d.website } : {}),
         ...(d.instagram !== undefined ? { instagram: d.instagram } : {}),
+        ...(d.legalName !== undefined ? { legalName: d.legalName } : {}),
+        ...(d.document !== undefined ? { document: d.document } : {}),
+        ...(d.address !== undefined ? { address: d.address } : {}),
+        ...(d.representativeName !== undefined
+          ? { representativeName: d.representativeName }
+          : {}),
+        ...(d.representativeCpf !== undefined
+          ? { representativeCpf: d.representativeCpf }
+          : {}),
         ...(d.ownerId !== undefined ? { ownerId: d.ownerId } : {}),
         ...(d.status !== undefined ? { status: d.status } : {}),
         ...(d.importantLinks !== undefined

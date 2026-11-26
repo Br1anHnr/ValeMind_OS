@@ -12,6 +12,7 @@ export async function logActivity(params: {
     | "financial"
     | "meeting"
     | "secret"
+    | "contract"
     | "user"
     | "system";
   entityId: string;
