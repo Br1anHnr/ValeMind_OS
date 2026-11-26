@@ -101,6 +101,8 @@ export default function FinanceiroPage() {
   const [entryModalOpen, setEntryModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<FinancialEntryItem | null>(null);
   const [eClientId, setEClientId] = useState("");
+  const [eCreateNewClient, setECreateNewClient] = useState(false);
+  const [eNewClientCompany, setENewClientCompany] = useState("");
   const [eProjectId, setEProjectId] = useState("");
   const [eDescription, setEDescription] = useState("");
   const [eType, setEType] = useState<FinancialEntryType>("pontual");
@@ -115,6 +117,10 @@ export default function FinanceiroPage() {
   // Contract modal
   const [contractModalOpen, setContractModalOpen] = useState(false);
   const [cProjectId, setCProjectId] = useState("");
+  const [cCreateNewProject, setCCreateNewProject] = useState(false);
+  const [cNewProjectName, setCNewProjectName] = useState("");
+  const [cNewProjectClientId, setCNewProjectClientId] = useState("");
+  const [cNewProjectClientCompany, setCNewProjectClientCompany] = useState("");
   const [cTotalSold, setCTotalSold] = useState("");
   const [cSetup, setCSetup] = useState("");
   const [cMonthly, setCMonthly] = useState("");
@@ -169,6 +175,8 @@ export default function FinanceiroPage() {
     setFormError(null);
     setEditingEntry(null);
     setEClientId(clients[0]?.id ?? "");
+    setECreateNewClient(clients.length === 0);
+    setENewClientCompany("");
     setEProjectId("");
     setEDescription("");
     setEType("pontual");
@@ -185,6 +193,8 @@ export default function FinanceiroPage() {
     setFormError(null);
     setEditingEntry(entry);
     setEClientId(entry.clientId);
+    setECreateNewClient(false);
+    setENewClientCompany("");
     setEProjectId(entry.projectId ?? "");
     setEDescription(entry.description);
     setEType(entry.entryType);
@@ -201,6 +211,10 @@ export default function FinanceiroPage() {
     setFormError(null);
     if (existing) {
       setCProjectId(existing.projectId);
+      setCCreateNewProject(false);
+      setCNewProjectName("");
+      setCNewProjectClientId("");
+      setCNewProjectClientCompany("");
       setCTotalSold(existing.totalSoldValue ?? "");
       setCSetup(existing.setupValue ?? "");
       setCMonthly(existing.monthlyFee ?? "");
@@ -216,6 +230,10 @@ export default function FinanceiroPage() {
       setCNotes(existing.notes ?? "");
     } else {
       setCProjectId(projects[0]?.id ?? "");
+      setCCreateNewProject(projects.length === 0);
+      setCNewProjectName("");
+      setCNewProjectClientId(clients[0]?.id ?? "");
+      setCNewProjectClientCompany("");
       setCTotalSold("");
       setCSetup("");
       setCMonthly("");
@@ -244,7 +262,10 @@ export default function FinanceiroPage() {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          clientId: eClientId,
+          clientId: !editingEntry && eCreateNewClient ? null : eClientId,
+          ...(!editingEntry && eCreateNewClient
+            ? { newClient: { company: eNewClientCompany } }
+            : {}),
           projectId: eProjectId || null,
           description: eDescription,
           entryType: eType,
@@ -277,7 +298,20 @@ export default function FinanceiroPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          projectId: cProjectId,
+          projectId: cCreateNewProject ? null : cProjectId,
+          ...(cCreateNewProject
+            ? {
+                newProject: {
+                  name: cNewProjectName,
+                  clientId:
+                    clients.length > 0 && cNewProjectClientId
+                      ? cNewProjectClientId
+                      : null,
+                  clientCompany:
+                    !cNewProjectClientId ? cNewProjectClientCompany : null,
+                },
+              }
+            : {}),
           totalSoldValue: cTotalSold || null,
           setupValue: cSetup || null,
           monthlyFee: cMonthly || null,
@@ -333,8 +367,7 @@ export default function FinanceiroPage() {
           <button
             type="button"
             onClick={() => openContractModal()}
-            disabled={projects.length === 0}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-xs hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-xs hover:bg-slate-50"
           >
             <FileSpreadsheet className="h-4 w-4 text-indigo-600" />
             Configurar Contrato
@@ -342,8 +375,7 @@ export default function FinanceiroPage() {
           <button
             type="button"
             onClick={openNewEntry}
-            disabled={clients.length === 0}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500"
           >
             <Plus className="h-4 w-4" />
             Novo Recebimento
@@ -497,6 +529,24 @@ export default function FinanceiroPage() {
               <p className="mt-1 text-sm text-slate-500">
                 Configure o contrato de um projeto (gerando mensalidades automaticamente) ou registre um recebimento pontual.
               </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={openNewEntry}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                >
+                  <Plus className="h-4 w-4" />
+                  Novo Recebimento
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openContractModal()}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-indigo-600" />
+                  Configurar Contrato
+                </button>
+              </div>
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
@@ -654,8 +704,7 @@ export default function FinanceiroPage() {
             <button
               type="button"
               onClick={() => openContractModal()}
-              disabled={projects.length === 0}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
             >
               <Plus className="h-4 w-4" />
               Configurar primeiro contrato
@@ -796,22 +845,43 @@ export default function FinanceiroPage() {
         <form onSubmit={handleSaveEntry} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">
-                Cliente *
-              </label>
-              <select
-                required
-                value={eClientId}
-                onChange={(e) => setEClientId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <option value="">Selecionar cliente</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.company}
-                  </option>
-                ))}
-              </select>
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <label className="text-xs font-medium text-slate-700">
+                  Cliente *
+                </label>
+                {!editingEntry && clients.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setECreateNewClient((prev) => !prev)}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
+                  >
+                    {eCreateNewClient ? "Selecionar existente" : "+ Novo cliente"}
+                  </button>
+                ) : null}
+              </div>
+              {!editingEntry && eCreateNewClient ? (
+                <input
+                  required
+                  value={eNewClientCompany}
+                  onChange={(e) => setENewClientCompany(e.target.value)}
+                  placeholder="Nome da empresa / cliente"
+                  className="w-full rounded-xl border border-indigo-200 bg-indigo-50/30 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none"
+                />
+              ) : (
+                <select
+                  required
+                  value={eClientId}
+                  onChange={(e) => setEClientId(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                >
+                  <option value="">Selecionar cliente</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.company}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-700">
@@ -955,7 +1025,7 @@ export default function FinanceiroPage() {
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+          <div className="sticky bottom-0 -mx-6 -mb-5 flex justify-end gap-2 border-t border-slate-100 bg-white px-6 py-3.5">
             <button
               type="button"
               onClick={() => setEntryModalOpen(false)}
@@ -984,23 +1054,99 @@ export default function FinanceiroPage() {
       >
         <form onSubmit={handleSaveContract} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-700">
-              Projeto *
-            </label>
-            <select
-              required
-              value={cProjectId}
-              onChange={(e) => setCProjectId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-            >
-              <option value="">Selecionar projeto</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.clientCompany ? ` — ${p.clientCompany}` : ""}
-                </option>
-              ))}
-            </select>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label className="text-xs font-medium text-slate-700">
+                Projeto *
+              </label>
+              {projects.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setCCreateNewProject((prev) => !prev)}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
+                >
+                  {cCreateNewProject
+                    ? "Selecionar projeto existente"
+                    : "+ Criar novo projeto"}
+                </button>
+              ) : null}
+            </div>
+
+            {cCreateNewProject ? (
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3.5 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-700">
+                    Nome do projeto *
+                  </label>
+                  <input
+                    required
+                    value={cNewProjectName}
+                    onChange={(e) => setCNewProjectName(e.target.value)}
+                    placeholder="Ex.: E-commerce Real Mercado"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-medium text-slate-700">
+                    Cliente *
+                  </label>
+                  {clients.length > 0 ? (
+                    <select
+                      value={cNewProjectClientId}
+                      onChange={(e) => setCNewProjectClientId(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm"
+                    >
+                      <option value="">Cadastrar novo cliente abaixo</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.company}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      required
+                      value={cNewProjectClientCompany}
+                      onChange={(e) =>
+                        setCNewProjectClientCompany(e.target.value)
+                      }
+                      placeholder="Empresa / Cliente"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm"
+                    />
+                  )}
+                </div>
+                {clients.length > 0 && !cNewProjectClientId ? (
+                  <div className="sm:col-span-2">
+                    <label className="mb-1 block text-[11px] font-medium text-slate-700">
+                      Nome da nova empresa / cliente *
+                    </label>
+                    <input
+                      required
+                      value={cNewProjectClientCompany}
+                      onChange={(e) =>
+                        setCNewProjectClientCompany(e.target.value)
+                      }
+                      placeholder="Empresa / Cliente"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <select
+                required
+                value={cProjectId}
+                onChange={(e) => setCProjectId(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">Selecionar projeto</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                    {p.clientCompany ? ` — ${p.clientCompany}` : ""}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -1137,7 +1283,7 @@ export default function FinanceiroPage() {
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+          <div className="sticky bottom-0 -mx-6 -mb-5 flex justify-end gap-2 border-t border-slate-100 bg-white px-6 py-3.5">
             <button
               type="button"
               onClick={() => setContractModalOpen(false)}

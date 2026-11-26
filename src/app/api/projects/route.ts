@@ -7,6 +7,7 @@ import {
   projectParticipants,
   projects,
   projectStatusEnum,
+  recurringPayments,
   users,
 } from "@/db/schema";
 import { requireApiUser } from "@/lib/auth";
@@ -14,6 +15,7 @@ import { projectInputSchema } from "@/lib/validators";
 import { parseNumericInput } from "@/lib/format";
 import { logActivity } from "@/lib/activity";
 import { PROJECT_STATUS_MAP } from "@/lib/constants";
+import { getTodayYmd, syncRecurringFinancialEntries } from "@/lib/finance";
 import {
   parseJsonBody,
   validateEnumFilter,
@@ -228,8 +230,30 @@ export async function POST(request: Request) {
           .onConflictDoNothing();
       }
 
+      // Se o projeto já possui valor vendido ou mensalidade, cria o contrato financeiro inicial automaticamente
+      const soldVal = parseNumericInput(d.soldValue);
+      const feeVal = parseNumericInput(d.monthlyFee);
+      if ((soldVal && Number(soldVal) > 0) || (feeVal && Number(feeVal) > 0)) {
+        await tx
+          .insert(recurringPayments)
+          .values({
+            projectId: proj.id,
+            clientId: resolvedClient.id,
+            totalSoldValue: soldVal,
+            monthlyFee: feeVal,
+            billingStartDate: d.startDate || getTodayYmd(),
+            dueDay: 10,
+            active: Boolean(feeVal && Number(feeVal) > 0),
+          })
+          .onConflictDoNothing();
+      }
+
       return { project: proj, client: resolvedClient };
     });
+
+    if (created.monthlyFee && Number(created.monthlyFee) > 0) {
+      await syncRecurringFinancialEntries();
+    }
 
     await Promise.all([
       logActivity({

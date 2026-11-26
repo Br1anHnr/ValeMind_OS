@@ -186,34 +186,73 @@ export const taskInputSchema = z.object({
 
 export const taskPatchSchema = taskInputSchema.partial();
 
-export const projectContractSchema = z.object({
-  projectId: z.string().uuid("Selecione um projeto válido"),
-  totalSoldValue: z.union([z.string(), z.number()]).optional().nullable(),
-  setupValue: z.union([z.string(), z.number()]).optional().nullable(),
-  monthlyFee: z.union([z.string(), z.number()]).optional().nullable(),
-  billingStartDate: optionalString,
-  dueDay: z.coerce.number().int().min(1).max(31).default(10),
-  paymentMethod: optionalString,
-  installmentsCount: z.coerce.number().int().min(1).max(48).default(1),
-  active: z.boolean().default(true),
-  generateInstallments: z.boolean().optional().default(false),
-  notes: optionalString,
-});
+export const projectContractSchema = z
+  .object({
+    projectId: optionalUuid,
+    newProject: z
+      .object({
+        name: z.string().trim().min(1, "Informe o nome do projeto"),
+        clientId: optionalUuid,
+        clientCompany: optionalString,
+      })
+      .optional()
+      .nullable(),
+    totalSoldValue: z.union([z.string(), z.number()]).optional().nullable(),
+    setupValue: z.union([z.string(), z.number()]).optional().nullable(),
+    monthlyFee: z.union([z.string(), z.number()]).optional().nullable(),
+    billingStartDate: optionalString,
+    dueDay: z.coerce.number().int().min(1).max(31).default(10),
+    paymentMethod: optionalString,
+    installmentsCount: z.coerce.number().int().min(1).max(48).default(1),
+    active: z.boolean().default(true),
+    generateInstallments: z.boolean().optional().default(false),
+    notes: optionalString,
+  })
+  .refine(
+    (d) =>
+      Boolean(
+        d.projectId ||
+          (d.newProject?.name &&
+            (d.newProject.clientId || d.newProject.clientCompany))
+      ),
+    {
+      message:
+        "Selecione um projeto existente ou informe o projeto e o cliente",
+      path: ["projectId"],
+    }
+  );
 
-export const financialEntrySchema = z.object({
-  clientId: z.string().uuid("Selecione um cliente válido"),
+export const financialEntrySchema = z
+  .object({
+    clientId: optionalUuid,
+    newClient: inlineClientSchema.optional().nullable(),
+    projectId: optionalUuid,
+    description: z.string().trim().min(1, "Descrição é obrigatória"),
+    entryType: z.enum(financialEntryTypeEnum.enumValues).default("pontual"),
+    amount: z.union([z.string(), z.number()]),
+    dueDate: z.string().trim().min(8, "Data de vencimento é obrigatória"),
+    paidAt: optionalString,
+    status: z.enum(financialStatusEnum.enumValues).default("pendente"),
+    paymentMethod: optionalString,
+    notes: optionalString,
+  })
+  .refine((d) => Boolean(d.clientId || d.newClient?.company), {
+    message: "Selecione um cliente existente ou informe o nome do cliente",
+    path: ["clientId"],
+  });
+
+export const financialEntryPatchSchema = z.object({
+  clientId: z.string().uuid("Selecione um cliente válido").optional(),
   projectId: optionalUuid,
-  description: z.string().trim().min(1, "Descrição é obrigatória"),
-  entryType: z.enum(financialEntryTypeEnum.enumValues).default("pontual"),
-  amount: z.union([z.string(), z.number()]),
-  dueDate: z.string().trim().min(8, "Data de vencimento é obrigatória"),
+  description: z.string().trim().min(1, "Descrição é obrigatória").optional(),
+  entryType: z.enum(financialEntryTypeEnum.enumValues).optional(),
+  amount: z.union([z.string(), z.number()]).optional(),
+  dueDate: z.string().trim().min(8, "Data de vencimento é obrigatória").optional(),
   paidAt: optionalString,
-  status: z.enum(financialStatusEnum.enumValues).default("pendente"),
+  status: z.enum(financialStatusEnum.enumValues).optional(),
   paymentMethod: optionalString,
   notes: optionalString,
 });
-
-export const financialEntryPatchSchema = financialEntrySchema.partial();
 
 export const meetingInputSchema = z.object({
   title: z.string().trim().min(1, "Título da reunião é obrigatório"),

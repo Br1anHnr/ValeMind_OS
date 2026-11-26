@@ -3,6 +3,7 @@ import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import {
   clients,
+  contacts,
   financialEntries,
   financialEntryTypeEnum,
   financialStatusEnum,
@@ -283,21 +284,57 @@ export async function POST(request: Request) {
     const paidAt =
       d.status === "pago" ? d.paidAt || getTodayYmd() : d.paidAt || null;
 
-    const [created] = await db
-      .insert(financialEntries)
-      .values({
-        clientId: d.clientId,
-        projectId: d.projectId ?? null,
-        description: d.description,
-        entryType: d.entryType,
-        amount,
-        dueDate: d.dueDate,
-        paidAt,
-        status: d.status,
-        paymentMethod: d.paymentMethod,
-        notes: d.notes,
-      })
-      .returning();
+    const created = await db.transaction(async (tx) => {
+      let resolvedClientId = d.clientId ?? null;
+
+      if (!resolvedClientId && d.newClient) {
+        const contactName = d.newClient.name || d.newClient.company;
+        const [newClientRow] = await tx
+          .insert(clients)
+          .values({
+            company: d.newClient.company,
+            name: contactName,
+            email: d.newClient.email,
+            phone: d.newClient.phone,
+            ownerId: authUser.id,
+            status: "ativo",
+          })
+          .returning({ id: clients.id });
+
+        await tx.insert(contacts).values({
+          clientId: newClientRow.id,
+          name: contactName,
+          role: "Contato Principal",
+          email: d.newClient.email,
+          phone: d.newClient.phone,
+          isPrimary: true,
+        });
+
+        resolvedClientId = newClientRow.id;
+      }
+
+      if (!resolvedClientId) {
+        throw new Error("Cliente obrigatório");
+      }
+
+      const [entry] = await tx
+        .insert(financialEntries)
+        .values({
+          clientId: resolvedClientId,
+          projectId: d.projectId ?? null,
+          description: d.description,
+          entryType: d.entryType,
+          amount,
+          dueDate: d.dueDate,
+          paidAt,
+          status: d.status,
+          paymentMethod: d.paymentMethod,
+          notes: d.notes,
+        })
+        .returning();
+
+      return entry;
+    });
 
     await logActivity({
       userId: authUser.id,

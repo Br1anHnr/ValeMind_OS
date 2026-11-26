@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { financialEntries, projects, recurringPayments } from "@/db/schema";
+import {
+  clients,
+  contacts,
+  financialEntries,
+  projectParticipants,
+  projects,
+  recurringPayments,
+} from "@/db/schema";
 import { requireApiUser } from "@/lib/auth";
 import { projectContractSchema } from "@/lib/validators";
 import { parseNumericInput } from "@/lib/format";
@@ -38,23 +45,82 @@ export async function POST(request: Request) {
     }
 
     const d = parsed.data;
-    const [project] = await db
-      .select({ id: projects.id, name: projects.name, clientId: projects.clientId })
-      .from(projects)
-      .where(eq(projects.id, d.projectId))
-      .limit(1);
-
-    if (!project) {
-      return NextResponse.json(
-        { error: "Projeto não encontrado" },
-        { status: 404 }
-      );
-    }
-
     const totalSoldValue = parseNumericInput(d.totalSoldValue);
     const setupValue = parseNumericInput(d.setupValue);
     const monthlyFee = parseNumericInput(d.monthlyFee);
     const billingStartDate = d.billingStartDate || getTodayYmd();
+
+    let project: { id: string; name: string; clientId: string } | null = null;
+
+    if (d.projectId && !d.newProject) {
+      const [found] = await db
+        .select({ id: projects.id, name: projects.name, clientId: projects.clientId })
+        .from(projects)
+        .where(eq(projects.id, d.projectId))
+        .limit(1);
+
+      if (!found) {
+        return NextResponse.json(
+          { error: "Projeto não encontrado" },
+          { status: 404 }
+        );
+      }
+      project = found;
+    } else if (d.newProject) {
+      project = await db.transaction(async (tx) => {
+        let resolvedClientId = d.newProject!.clientId ?? null;
+        if (!resolvedClientId && d.newProject!.clientCompany) {
+          const [newClientRow] = await tx
+            .insert(clients)
+            .values({
+              company: d.newProject!.clientCompany,
+              name: d.newProject!.clientCompany,
+              ownerId: authUser.id,
+              status: "ativo",
+            })
+            .returning({ id: clients.id });
+
+          await tx.insert(contacts).values({
+            clientId: newClientRow.id,
+            name: d.newProject!.clientCompany,
+            role: "Contato Principal",
+            isPrimary: true,
+          });
+          resolvedClientId = newClientRow.id;
+        }
+
+        if (!resolvedClientId) {
+          throw new Error("Cliente obrigatório para criar o projeto");
+        }
+
+        const [newProj] = await tx
+          .insert(projects)
+          .values({
+            name: d.newProject!.name,
+            clientId: resolvedClientId,
+            ownerId: authUser.id,
+            status: "producao",
+            startDate: billingStartDate,
+            soldValue: totalSoldValue,
+            monthlyFee,
+          })
+          .returning({ id: projects.id, name: projects.name, clientId: projects.clientId });
+
+        await tx
+          .insert(projectParticipants)
+          .values({ projectId: newProj.id, userId: authUser.id })
+          .onConflictDoNothing();
+
+        return newProj;
+      });
+    }
+
+    if (!project) {
+      return NextResponse.json(
+        { error: "Selecione um projeto ou informe os dados para criar um novo" },
+        { status: 400 }
+      );
+    }
 
     const [existing] = await db
       .select({ id: recurringPayments.id })
