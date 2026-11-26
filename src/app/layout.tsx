@@ -11,6 +11,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ValeMind OS — Gestão Interna",
   description: "Painel central de gestão comercial, operacional e de projetos da ValeMind.",
+  icons: {
+    icon: [
+      { url: "/valemind-icon.png?v=2", type: "image/png" },
+      { url: "/favicon.ico?v=2", sizes: "any" },
+    ],
+    shortcut: "/valemind-icon.png?v=2",
+    apple: "/valemind-icon.png?v=2",
+  },
 };
 
 export default function RootLayout({

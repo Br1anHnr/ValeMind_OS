@@ -10,6 +10,8 @@ export function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
+    pathname.startsWith("/icon") ||
+    pathname.startsWith("/apple-icon") ||
     pathname.endsWith(".svg") ||
     pathname.endsWith(".png") ||
     pathname.endsWith(".ico")
